@@ -1,0 +1,347 @@
+video 20:-
+
+JENKINS
+
+default port : 8080
+Automation tools
+CI/CD/ Delivery or Deployment
+
+code->git->sonar->maven build->test->package->docker image = CI
+CD - delivery and deployment
+     delivery --- manual approval to deliver
+     deployment-post-pipeline-no approval-most widely tool
+other CI tools:
+     github action
+     gitlab ci,circule ci, bamboo ci,travis ci
+
+     open soure , free
+     cloudbees --- enterprices edition
+
+job
+ freestyle
+ pipeline
+ - declarative
+ - scripted
+ multibranch pipeline
+ multiconfig pipeline
+ folder
+plugin
+credencials
+parameters
+backup
+master/slave
+
+/etc/yum.repos.d/  amazonlinux.repo --- amazon packages
+
+cat /etc/yum.repos.d/amazonlinux.repo
+
+enable port --- 8080
+
+***********************************************************
+install java-17 for aws linux
+
+create Amazon Linux 2 server
+
+sudo yum update -y
+
+sudo yum install java -y
+
+sudo wget -O /etc/yum.repos.d/jenkins.repo https://pkg.jenkins.io/redhat-stable/jenkins.repo
+
+sudo rpm --import https://pkg.jenkins.io/redhat-stable/jenkins.io-2023.key
+
+sudo yum upgrade
+
+sudo yum install jenkins -y
+
+sudo systemctl enable jenkins
+
+sudo systemctl start jenkins
+
+sudo systemctl status jenkins
+
+************************************************************
+
+manage jenkins
+tools
+
+cd /var/lib/jenkins
+
+cd /var/lib/jenkins/workspace
+
+
+Jenkins Architecture: 
+
+Plugin Management : 
+     Gives options to use them to connect a specific tools for our application (Git/maven).
+     Once you install a plugin, it will be considered as tools
+
+Node Configuration: 
+     To tell jenkins which servers to connect (slaves) 
+
+Tools Configuration: (application related URLs)
+     To give the tools location in jenkins to execute the jobs (URLS). (Git, maven, sonarqube, docker, kubernetes, nexus etc)
+
+System configuration: (Master - Configure system) 
+     To run jenkins we need some set of configuration so that can be defined in System configurations  (environmental variables) 
+
+Job Configuration: 
+     what job we are going to execute that can be defined in job configurations. 
+     patches, software release, agents schedulers
+     
+Credencials:
+
+*********************************************************************************
+
+chenging jenkins port
+  
+   systemctl edit jenkins --full
+
+    Environment = "Jenkins_port = 8080"    // you can change the port
+   systemctl restart jenkins
+
+changing tomcat port
+   tomcat folder/conf-- nano server.xml->change connector port 8080 to 8081
+ 
+*******************************************************************************
+
+WEBHOOK:
+
+in Jenkins,
+
+GitHub Hooks trigger for GITScm polling   --- enable it in the job
+
+copy the url :- ip:8090
+
+Github repo -> repo setting -> webhook -> add hook -> payroleURL -> paste https://ip:8090/github-webhook/ -> content type : application.json
+->Disable -> send me everything -> add webhook
+
+
+*************************************************************************************
+
+maven freestyle
+
+tools configure -> maven -> install automatically
+
+job  ---> add build step->invoke top-level maven targets -> mevan home -> clean/ and add package
+
+
+*****************************************************************************************
+
+publish over ssh . install this plugin
+system - ssh server
+
+
+Tomcat deploy .war file - create t2.medium server for tomcat
+
+push the code another server:- system -> ssh
+
+from ec2-user:
+
+  install tomcat tar.gz file -> install plugin called : publish over SSH -> then 
+
+  system -> SSH server ->add -> key - name (tomcat-deploy) , Hostname - ipaddress/private or public(for diff vpc) of tomcat - username (ec2-user)
+   - Remote directory(/opt/apache-tomcat-9.0.96/webapps) - key(aug21.pem) open with note pad and paste it.
+
+
+download tomcat 9 download
+download binary tar file
+wget https://dlcdn.apache.org/tomcat/tomcat-9/v9.0.95/bin/apache-tomcat-9.0.95.tar.gz
+tar -xvzf apache-tomcat-9.0.95.tar.gz
+ls
+rm apache-tomcat-9.0.95.tar.gz
+mv apache-tomcat-9.0.95 tomcat
+cp -R tomcat /opt
+cp -R tomcat /opt
+cd /opt
+ls
+cd tomcat
+ls
+cd bin
+ls
+./catalina.sh version
+ls
+./startup.sh
+ln -s /opt/tomcat/bin/startup.sh /usr/bin/tomcatup
+ln -s /opt/tomcat/bin/shutdown.sh /usr/bin/tomcatdown
+cd 
+tomcatup
+tomcatdown
+tomcatup
+
+cd /opt/tomcat/webapps
+
+wget https://tomcat.apache.org/tomcat-7.0-doc/appdev/sample/sample.war
+
+ip:8081:Sample
+
+
+job ----> configure -> post build action -> send build artifact via ssh - name(tomcat-deploy) - source file(target/addressbook-2.0.war)
+
+restart tomcat server.
+
+deployed .war in tomcat server
+
+ip:8081:addressbook-2.0
+
+
+*******************************************************************************************************************************************
+
+Pipeline Job: 
+
+pipeline {
+    agent any
+    
+    tools {
+      maven 'Maven_Home'
+    }
+
+    stages {
+        stage('git checkout') {
+            steps {
+               git branch: 'main', url: 'https://github.com/Ramasamy3488/devops-demo-project.git'
+            }
+        }
+        stage('test') {
+            steps {
+               sh 'mvn test'
+            }
+        }
+        stage('build') {
+            steps {
+               sh 'mvn package'
+            }
+        }
+        stage('maven version') {
+            steps {
+               sh 'mvn --version'
+            }
+        }
+    }
+}
+
+  
+
+
+
+
+*************************************************************************************************
+
+Email notification:
+
+Extended E-mail Notification
+SMTP server
+smtp.gmail.com
+SMTP Port
+465
+Advanced
+Edited
+Credentials add (jenkins -> mail and generated password from google settings)
+
+kvpramasamy@gmail.com/****** (gmailcreds)
+
+Use SSL
+Default user e-mail suffix -> @gmail.com
+
+
+   SMTP server -> smtp.gmail.com
+Default user e-mail suffix -> @gmail.com
+Advanced
+Edited
+
+Use SMTP Authentication->User Name kvpramasamy@gmail.com
+Password
+ohmwkgpxxnpwhoim (app password generate from google setting)
+
+select -> Use SSL 
+
+SMTP Port -> 465
+
+
+Charset
+UTF-8
+
+Test configuration by sending test e-mail
+Test e-mail recipient
+tokepof597@paxnw.com (genereated from temp mail)
+Test configuration
+Email was successfully sent
+
+
+syntax  snippet - extentedemail :- emailext body: '', subject: 'Pipeline is success', to: 'tokepof597@paxnw.com'
+
+syntax  declarative - post stage or build :- 
+      post {
+         success {
+            // One or more steps need to be included within each condition's block.
+          }
+         failure {
+           // One or more steps need to be included within each condition's block.
+         }
+           unsuccessful {
+          // One or more steps need to be included within each condition's block.
+        }
+    }
+
+
+
+pipeline {
+    agent any
+
+    stages {
+        stage('checkout') {
+            steps {
+                echo 'Hello checkout'
+            }
+        }
+        stage('test') {
+            steps {
+                sh 'lsm'
+            }
+        }
+        stage('build') {
+            steps {
+                echo 'Hello build'
+            }
+        }
+    }
+    
+    post {
+  success {
+    emailext body: '', subject: 'Pipeline is success', to: 'tokepof597@paxnw.com'
+  }
+  failure {
+    emailext body: '', subject: 'Pipeline is failure', to: 'tokepof597@paxnw.com'
+  }
+  unsuccessful {
+    emailext body: '', subject: 'Pipeline is unsuccess', to: 'tokepof597@paxnw.com'
+  }
+}
+
+}
+
+
+****************************************************************************************************
+   
+Microsoft TEAM notification:
+
+*****************************************************************************
+
+to know the tools installed
+
+dpkg -l | grep jenkins
+
+
+******************************************************************************
+
+/var/lib/jenkins  -- config.xml - useSecurity - > true/false/
+
+systemctl restart jenkins
+
+
+manage jenkins->security->
+
+
+
+
+

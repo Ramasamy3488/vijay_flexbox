@@ -1,0 +1,232 @@
+
+JENKINS
+
+default port : 8080
+Automation tools
+CI/CD/ Delivery or Deployment
+
+code->git->sonar->maven build->test->package->docker image = CI
+CD - delivery and deployment
+     delivery --- manual approval to deliver
+     deployment-post-pipeline-no approval-most widely tool
+other CI tools:
+     github action
+     gitlab ci,circule ci, bamboo ci,travis ci
+
+     open soure , free
+     cloudbees --- enterprices edition
+
+job
+ freestyle
+ pipeline
+ - declarative
+ - scripted
+ multibranch pipeline
+ multiconfig pipeline
+ folder
+plugin
+credencials
+parameters
+backup
+master/slave
+
+/etc/yum.repos.d/  amazonlinux.repo --- amazon packages
+
+cat /etc/yum.repos.d/amazonlinux.repo
+
+enable port --- 8080
+
+------------------------------------------------------
+
+Jenkins Architecture: 
+
+Plugin Management : 
+     Gives options to use them to connect a specific tools for our application (Git/maven).
+     Once you install a plugin, it will be considered as tools
+
+Node Configuration: 
+     To tell jenkins which servers to connect (slaves) 
+
+Tools Configuration: (application related URLs)
+     To give the tools location in jenkins to execute the jobs (URLS). (Git, maven, sonarqube, docker, kubernetes, nexus etc)
+
+System configuration: (Master - Configure system) 
+     To run jenkins we need some set of configuration so that can be defined in System configurations  (environmental variables) 
+
+Job Configuration: 
+     what job we are going to execute that can be defined in job configurations. 
+     patches, software release, agents schedulers
+     
+Credencials:
+
+*********************************************************************************
+
+chenging jenkins port
+  
+   systemctl edit jenkins --full
+
+    Environment = "Jenkins_port = 8080"    // you can change the port
+   systemctl restart jenkins
+
+changing tomcat port
+   tomcat folder/conf-- nano server.xml->change connector port 8080 to 8081
+ 
+***********************************************************************
+
+WEBHOOK:
+
+
+GitHub Hooks trigger for GITScm polling   --- enable it in the job
+
+copy the url :- ip:8090
+
+Github repo -> repo setting -> webhook -> add hook -> payroleURL -> paste https://ip:8090/github-webhook/ -> content type : application/json
+
+SSL verification --> Enable SSL verification.
+
+Which events would you like to trigger this webhook?  -> send me everything -> add webhook
+
+
+******************************************************************
+
+maven freestyle job:
+
+tools configure -> maven -> install automatically
+
+*****************************************************************
+
+Pipeline Job: 
+
+pipeline {
+    agent any
+    
+    tools {
+      maven 'Maven_Home'
+    }
+
+    stages {
+        stage('git checkout') {
+            steps {
+               git branch: 'main', url: 'https://github.com/Ramasamy3488/devops-demo-project.git'
+            }
+        }
+        stage('test') {
+            steps {
+               sh 'mvn test'
+            }
+        }
+        stage('build') {
+            steps {
+               sh 'mvn package'
+            }
+        }
+        stage('maven version') {
+            steps {
+               sh 'mvn --version'
+            }
+        }
+    }
+}
+
+
+*************************************************************************************************
+
+Email notification:
+
+Extended E-mail Notification
+SMTP server
+smtp.gmail.com
+SMTP Port
+465
+Advanced
+Edited
+Credentials add (jenkins -> mail and generated password from google settings)
+
+kvpramasamy@gmail.com/****** (gmailcreds)
+
+Use SSL
+Default user e-mail suffix -> @gmail.com
+
+
+   SMTP server -> smtp.gmail.com
+Default user e-mail suffix -> @gmail.com
+Advanced
+Edited
+
+Use SMTP Authentication->User Name kvpramasamy@gmail.com
+Password
+ohmwkgpxxnpwhoim (app password generate from google setting)
+
+select -> Use SSL 
+
+SMTP Port -> 465
+
+
+Charset
+UTF-8
+
+Test configuration by sending test e-mail
+Test e-mail recipient
+tokepof597@paxnw.com (genereated from temp mail)
+Test configuration
+Email was successfully sent
+
+
+syntax  snippet - extentedemail :- emailext body: '', subject: 'Pipeline is success', to: 'tokepof597@paxnw.com'
+
+syntax  declarative - post stage or build :- 
+      post {
+         success {
+            // One or more steps need to be included within each condition's block.
+          }
+         failure {
+           // One or more steps need to be included within each condition's block.
+         }
+           unsuccessful {
+          // One or more steps need to be included within each condition's block.
+        }
+    }
+
+
+
+pipeline {
+    agent any
+
+    stages {
+        stage('checkout') {
+            steps {
+                echo 'Hello checkout'
+            }
+        }
+        stage('test') {
+            steps {
+                sh 'lsm'
+            }
+        }
+        stage('build') {
+            steps {
+                echo 'Hello build'
+            }
+        }
+    }
+    
+    post {
+  success {
+    emailext body: '', subject: 'Pipeline is success', to: 'tokepof597@paxnw.com'
+  }
+  failure {
+    emailext body: '', subject: 'Pipeline is failure', to: 'tokepof597@paxnw.com'
+  }
+  unsuccessful {
+    emailext body: '', subject: 'Pipeline is unsuccess', to: 'tokepof597@paxnw.com'
+  }
+}
+
+}
+
+
+
+
+
+
+
